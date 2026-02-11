@@ -1,142 +1,187 @@
-import tkinter as tk
 import random
+import time
+import os
 
-x = 20
-y = 120
-speed = 5
-mode = "move"
-target_x = 260
-countdown_time = 0
+WIDTH = 12
+HEIGHT = 10
+NUM_STEPS = WIDTH  # length of the path
 
-def beep():
-    root.bell()
+def clear():
+    os.system("cls" if os.name=="nt" else "clear")
 
-def draw_scene():
-    canvas.delete("all")
+def draw_scene(robot, persons, walls, door):
+    for y in range(HEIGHT):
+        for x in range(WIDTH):
+            pos = [x, y]
+            if pos == robot:
+                print("R", end=" ")
+            elif pos in persons:
+                print("P", end=" ")
+            elif pos in walls:
+                print("W", end=" ")
+            elif pos == door:
+                print("D", end=" ")
+            else:
+                print(".", end=" ")
+        print()
+    print("\nR=Robot  P=Person  W=Wall  D=Door\n")
 
-    # Robot
-    canvas.create_rectangle(x, y, x+40, y+40, fill="gray")
-    canvas.create_oval(x+5, y-15, x+15, y, fill="white")
-    canvas.create_oval(x+25, y-15, x+35, y, fill="white")
+def random_positions(exclude_positions, count):
+    positions = []
+    while len(positions) < count:
+        pos = [random.randint(0, WIDTH-1), random.randint(0, HEIGHT-1)]
+        if pos not in exclude_positions and pos not in positions:
+            positions.append(pos)
+    return positions
 
-    # Wall
-    if mode == "wall":
-        canvas.create_rectangle(200, 100, 240, 160, fill="brown")
-        canvas.create_text(220, 170, text="Wall")
+def main():
+    # Robot name
+    robot_name = input("Enter Robot Name: ").strip() or "Robo"
 
-    # Person
-    if mode == "person":
-        canvas.create_oval(205, 80, 235, 110, fill="peachpuff")
-        canvas.create_line(220, 110, 220, 150, width=3)
-        canvas.create_line(220, 120, 200, 135, width=3)
-        canvas.create_line(220, 120, 240, 135, width=3)
-        canvas.create_line(220, 150, 200, 180, width=3)
-        canvas.create_line(220, 150, 240, 180, width=3)
-        canvas.create_text(220, 195, text="Person")
+    # Target distance
+    while True:
+        try:
+            max_distance = int(input("Enter distance for the robot to travel: "))
+            if max_distance <= 0:
+                print("Distance must be positive.")
+                continue
+            break
+        except:
+            print("Enter a valid number.")
 
-def auto_move():
-    global x, mode
+    # Initialize robot
+    robot = [0, random.randint(0, HEIGHT-1)]
+    door = [WIDTH-1, random.randint(0, HEIGHT-1)]
 
-    if mode != "move":
-        return
+    speed = 1
+    distance_travelled = 0
+    direction = "right"
+    travelling_status = "moving"
+    game_over = False
 
-    event = random.choice(["none", "wall", "person"])
+    # Create obstacles in each step
+    persons = []
+    walls = []
+    for step in range(1, WIDTH-1):  # leave start and end free
+        y_pos_person = random.randint(0, HEIGHT-1)
+        y_pos_wall = random.randint(0, HEIGHT-1)
+        persons.append([step, y_pos_person])
+        walls.append([step, y_pos_wall])
 
-    # --- WALL COLLISION ---
-    if event == "wall" and x > 120:
-        mode = "wall"
-        beep()
-        status.set("Wall touched! Choose direction!")
-        draw_scene()
-        buttons.pack()
-        return
+    while not game_over:
+        clear()
+        draw_scene(robot, persons, walls, door)
+        print(f"Robot: {robot_name}")
+        print(f"Distance Travelled: {distance_travelled}")
+        print(f"Status: {travelling_status}")
+        print(f"Current Direction: {direction}\n")
 
-    # --- PERSON COLLISION ---
-    if event == "person" and x > 120:
-        mode = "person"
-        beep()
-        status.set("Person ahead! Stopping...")
-        draw_scene()
-        start_countdown(5)
-        return
+        # Stop if reached max distance
+        if distance_travelled >= max_distance:
+            travelling_status = "stopped"
+            print(f"Target distance reached! GAME OVER")
+            print(f"Total Distance Travelled: {distance_travelled}")
+            print(f"Final Status: {travelling_status}")
+            print(f"Final Direction: {direction}")
+            break
 
-    # Normal movement
-    if x < target_x:
-        x += speed
-        status.set("Moving forward...")
-        draw_scene()
-        root.after(80, auto_move)
-    else:
-        status.set("Target reached!")
+        robot_x, robot_y = robot
+        obstacle_ahead = None
+        obstacle_type = None
 
-# --- User direction buttons ---
+        # Check nearest person in front
+        for p in persons:
+            if p[1] == robot_y and p[0] > robot_x:
+                if obstacle_ahead is None or p[0] < obstacle_ahead[0]:
+                    obstacle_ahead = p
+                    obstacle_type = "person"
 
-def avoid_up():
-    global y, mode
-    y -= 20
-    if y < 40:
-        y = 40
-    continue_forward()
+        # Check nearest wall in front
+        for w in walls:
+            if w[1] == robot_y and w[0] > robot_x:
+                if obstacle_ahead is None or w[0] < obstacle_ahead[0]:
+                    obstacle_ahead = w
+                    obstacle_type = "wall"
 
-def avoid_down():
-    global y, mode
-    y += 20
-    if y > 160:
-        y = 160
-    continue_forward()
+        # Steps to obstacle
+        if obstacle_ahead:
+            steps_to_obstacle = obstacle_ahead[0] - robot_x
+        else:
+            steps_to_obstacle = 1
 
-def avoid_back():
-    global x, mode
-    x -= 30
-    if x < 10:
-        x = 10
-    continue_forward()
+        # Person: stop 5 seconds in front
+        if obstacle_type == "person" and steps_to_obstacle <= 1:
+            print("Person ahead! Waiting 5 seconds...")
+            travelling_status = "stopped"
+            direction = "right"
+            time.sleep(5)
+            robot[0] += 1
+            distance_travelled += 1
+            travelling_status = "moving"
+            persons.remove(obstacle_ahead)
 
-def continue_forward():
-    global mode
-    buttons.pack_forget()
-    mode = "move"
-    status.set("Obstacle avoided → moving forward")
-    draw_scene()
-    root.after(200, auto_move)
+        # Wall: stop 2 units in front and ask
+        elif obstacle_type == "wall" and steps_to_obstacle <= 2:
+            travelling_status = "stopped"
+            print("Wall ahead! Stop 2 units in front.")
+            print("Choose direction to move: up / down / back")
+            while True:
+                cmd = input("Direction: ").lower()
+                if cmd == "up" and robot[1] > 0:
+                    robot[1] -= 1
+                    direction = "up"
+                    distance_travelled += 1
+                    travelling_status = "moving"
+                    break
+                elif cmd == "down" and robot[1] < HEIGHT-1:
+                    robot[1] += 1
+                    direction = "down"
+                    distance_travelled += 1
+                    travelling_status = "moving"
+                    break
+                elif cmd == "back" and robot[0] > 0:
+                    robot[0] -= 1
+                    direction = "left"
+                    distance_travelled += 1
+                    travelling_status = "moving"
+                    break
+                else:
+                    print("Invalid move. Try again.")
 
-# --- Person countdown ---
+        # Normal move
+        else:
+            robot[0] += speed
+            distance_travelled += speed
+            direction = "right"
+            travelling_status = "moving"
 
-def start_countdown(sec):
-    global countdown_time
-    countdown_time = sec
-    countdown()
+        # Check if robot touches wall
+        if robot in walls:
+            travelling_status = "stopped"
+            clear()
+            draw_scene(robot, persons, walls, door)
+            print("Robot hit the wall! GAME OVER")
+            print(f"Total Distance Travelled: {distance_travelled}")
+            print(f"Final Status: {travelling_status}")
+            print(f"Final Direction: {direction}")
+            game_over = True
 
-def countdown():
-    global countdown_time, mode
+        # Bounds
+        robot[0] = min(robot[0], WIDTH-1)
+        robot[1] = max(0, min(robot[1], HEIGHT-1))
 
-    if countdown_time > 0:
-        status.set(f"Waiting {countdown_time}s")
-        countdown_time -= 1
-        root.after(1000, countdown)
-    else:
-        mode = "move"
-        status.set("Path clear!")
-        auto_move()
+        # Door check
+        if robot == door:
+            travelling_status = "stopped"
+            clear()
+            draw_scene(robot, persons, walls, door)
+            print(f"{robot_name} reached the door! GAME OVER")
+            print(f"Total Distance Travelled: {distance_travelled}")
+            print(f"Final Status: {travelling_status}")
+            print(f"Final Direction: {direction}")
+            game_over = True
 
-# --- UI ---
+        time.sleep(0.5)
 
-root = tk.Tk()
-root.title("Robot Wall Avoidance Simulator")
-root.geometry("400x320")
-
-canvas = tk.Canvas(root, width=300, height=220, bg="lightblue")
-canvas.pack()
-
-status = tk.StringVar()
-tk.Label(root, textvariable=status).pack()
-
-tk.Button(root, text="Start", command=auto_move).pack(pady=5)
-
-buttons = tk.Frame(root)
-tk.Button(buttons, text="Up", command=avoid_up).pack(side="left")
-tk.Button(buttons, text="Down", command=avoid_down).pack(side="left")
-tk.Button(buttons, text="Back", command=avoid_back).pack(side="left")
-
-draw_scene()
-root.mainloop()
+if __name__ == "__main__":
+    main()
