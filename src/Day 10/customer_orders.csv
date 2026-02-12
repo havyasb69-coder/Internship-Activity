@@ -1,0 +1,11 @@
+OrderID,CustomerName,Product,Quantity,Price,Date,Location
+1001,Amit,Laptop,1,$55000,01-05-2024, New York
+1002,Sara,Mouse,2,$500,01-06-2024,new york
+,John,Keyboard,1,$1500,01-07-2024,nEW yoRK 
+1004,Priya,Monitor,, $12000 ,01-08-2024, New York
+1005,David,Headphones,1,,01-09-2024,new York
+1006,Meena,Laptop,1,$55000,01-10-2024,neW yorK
+1006,Meena,Laptop,1,$55000,01-10-2024,NEW YORK
+,Ali,Mouse,3,$500,01-11-2024, New York 
+1009,Riya,Keyboard,1,$1500,01-12-2024,new york
+1010,Amit,Monitor,2,$12000,01-13-2024,NEW york

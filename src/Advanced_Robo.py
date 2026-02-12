@@ -1,180 +1,194 @@
 import random
 import time
 import os
-import sys
 
 WIDTH = 20
 HEIGHT = 10
 PATH_LENGTH = 80
-SPEED = 0.25
 
-PERSON_SYMBOL = "👤"
-WALL_SYMBOL = "🧱"
-COIN_SYMBOL = "💰"
-ROBOT_SYMBOL = "🤖"
-EMPTY_SYMBOL = "·"
-
-COLOR_PERSON = "\033[33m"
-COLOR_WALL = "\033[31m"
-COLOR_ROBOT = "\033[36m"
-COLOR_COIN = "\033[32m"
-COLOR_RESET = "\033[0m"
+SYMBOLS = {
+    "robot": "🤖",
+    "person": "👤",
+    "wall": "🧱",
+    "coin": "💰",
+    "boss": "🚧",
+    "empty": "·"
+}
 
 def clear():
-    sys.stdout.flush()
     os.system("cls" if os.name == "nt" else "clear")
 
-def draw_scene(robot_pos, view, distance, score, direction, status):
-    clear()
-    print(f"Distance: {distance}  Score: {score}  Direction: {direction}  Status: {status}")
-    print("-" * (WIDTH * 2))
-
-    for y in range(HEIGHT):
-        for x in range(WIDTH):
-            if [x, y] == robot_pos:
-                print(f"{COLOR_ROBOT}{ROBOT_SYMBOL}{COLOR_RESET}", end=" ")
-            elif view[y][x] == "P":
-                print(f"{COLOR_PERSON}{PERSON_SYMBOL}{COLOR_RESET}", end=" ")
-            elif view[y][x] == "W":
-                print(f"{COLOR_WALL}{WALL_SYMBOL}{COLOR_RESET}", end=" ")
-            elif view[y][x] == "C":
-                print(f"{COLOR_COIN}{COIN_SYMBOL}{COLOR_RESET}", end=" ")
-            else:
-                print(EMPTY_SYMBOL, end=" ")
-        print()
-
-    print("-" * (WIDTH * 2))
-
-def safe_world(world, wx, wy):
-    if 0 <= wy < HEIGHT and 0 <= wx < len(world[0]):
-        return world[wy][wx]
-    return " "
+def progress_bar(distance):
+    bar_len = 30
+    filled = int(bar_len * distance / PATH_LENGTH)
+    return "[" + "█" * filled + "-" * (bar_len - filled) + "]"
 
 def generate_world():
     world = []
     for y in range(HEIGHT):
         row = []
         for x in range(PATH_LENGTH + WIDTH):
-            row.append(random.choice([" ", " ", "P", "W", "C"]))
+            tile = random.choice([" ", " ", "P", "W", "C"])
+            if x == PATH_LENGTH - 5:
+                tile = "B"
+            row.append(tile)
         world.append(row)
     return world
 
-def get_view(world, offset):
-    return [world[y][offset:offset+WIDTH] for y in range(HEIGHT)]
+def safe(world, x, y):
+    if 0 <= y < HEIGHT and 0 <= x < len(world[0]):
+        return world[y][x]
+    return " "
 
-def main():
-    robot_name = input("Enter Robot Name: ") or "Robo"
+def draw(robot, world, offset, distance, score, status):
+    clear()
+    print(f"Progress: {progress_bar(distance)}  Distance: {distance}/{PATH_LENGTH}")
+    print(f"Score: {score}  Status: {status}")
+    print("-" * 40)
 
-    robot_pos = [0, HEIGHT // 2]
+    for y in range(HEIGHT):
+        for x in range(WIDTH):
+            wx = offset + x
+            if [x, y] == robot:
+                print(SYMBOLS["robot"], end=" ")
+            else:
+                tile = safe(world, wx, y)
+                if tile == "P": print(SYMBOLS["person"], end=" ")
+                elif tile == "W": print(SYMBOLS["wall"], end=" ")
+                elif tile == "C": print(SYMBOLS["coin"], end=" ")
+                elif tile == "B": print(SYMBOLS["boss"], end=" ")
+                else: print(SYMBOLS["empty"], end=" ")
+        print()
+    print("-" * 40)
+
+def countdown():
+    for i in range(3, 0, -1):
+        clear()
+        print(f"Starting in {i}...")
+        time.sleep(1)
+
+def game():
+    robot_name = input("Robot name: ") or "Robo"
+    speed_choice = input("Speed level (slow/normal/fast): ").lower()
+
+    SPEED = 0.4
+    if speed_choice == "fast": SPEED = 0.15
+    elif speed_choice == "slow": SPEED = 0.6
+
+    countdown()
+
     world = generate_world()
+    robot = [0, HEIGHT//2]
     offset = 0
-
     score = 0
     distance = 0
-    direction = "right"
-    status = "moving"
+    checkpoints = []
+    status = "auto-moving"
 
     while True:
 
-        view = get_view(world, offset)
-        draw_scene(robot_pos, view, distance, score, direction, status)
+        draw(robot, world, offset, distance, score, status)
 
-        x, y = robot_pos
+        # auto checkpoint every 10 distance
+        if distance % 10 == 0 and distance != 0 and distance not in checkpoints:
+            checkpoints.append(distance)
+
+        # random glitch
+        if random.random() < 0.08:
+            robot[1] += random.choice([-1, 1])
+            print("⚡ Direction glitch!")
+            time.sleep(0.4)
+
+        x, y = robot
         wx = offset + x
-
-        front = safe_world(world, wx + 1, y)
+        front = safe(world, wx + 1, y)
 
         # PERSON
-        # PERSON (no blinking countdown)
         if front == "P":
-            status = "stopped"
+            status = "waiting"
+            print("Person ahead… waiting")
+            time.sleep(1)
+            robot[0] += 1
 
-            print("Person ahead! Waiting...")
-            for sec in range(5, -1, -1):
-                print(f"\rWaiting: {sec} seconds ", end="")
-                time.sleep(1)
-
-            print()
-            robot_pos[0] += 1
-
-        # WALL
+        # WALL (interactive)
         elif front == "W":
-            status = "stopped"
-            print("Wall ahead! Choose direction (up/down/back/jump):")
+            status = "blocked"
+            draw(robot, world, offset, distance, score, status)
+            print("🧱 Wall ahead!")
 
             moved = False
             while not moved:
-                cmd = input("Direction: ").lower()
+                move = input("Choose move (up/down/back/jump): ").lower()
 
-                if cmd == "jump":
-                    print("Jumping over wall!")
-                    robot_pos[0] += 1
-                    direction = "jump"
+                if move == "jump":
+                    robot[0] += 1
                     moved = True
 
-                elif cmd == "up" and safe_world(world, wx, y-1) != "W":
-                    robot_pos[1] -= 1
-                    direction = "up"
+                elif move == "up":
+                    robot[1] -= 1
                     moved = True
 
-                elif cmd == "down" and safe_world(world, wx, y+1) != "W":
-                    robot_pos[1] += 1
-                    direction = "down"
+                elif move == "down":
+                    robot[1] += 1
                     moved = True
 
-                elif cmd == "back" and safe_world(world, wx-1, y) != "W":
-                    robot_pos[0] -= 1
-                    direction = "left"
+                elif move == "back":
+                    robot[0] -= 1
                     moved = True
 
                 else:
-                    print("Blocked or invalid. Try again.")
+                    print("Invalid choice. Try again.")
+
+        # BOSS WALL
+        elif front == "B":
+            status = "boss wall"
+            if score >= 50:
+                print("Boss destroyed!")
+                robot[0] += 1
+                score -= 50
+                time.sleep(1)
+            else:
+                print("Not enough score — waiting")
+                time.sleep(1)
+                continue
 
         # NORMAL MOVE
         else:
-            robot_pos[0] += 1
-            direction = "right"
+            robot[0] += 1
 
-        # bounds clamp
-        robot_pos[0] = max(0, min(robot_pos[0], WIDTH-1))
-        robot_pos[1] = max(0, min(robot_pos[1], HEIGHT-1))
+        robot[0] = max(0, min(robot[0], WIDTH-1))
+        robot[1] = max(0, min(robot[1], HEIGHT-1))
 
-        wx = offset + robot_pos[0]
+        wx = offset + robot[0]
 
         # collect coin
-        if safe_world(world, wx, robot_pos[1]) == "C":
+        if safe(world, wx, robot[1]) == "C":
             score += 20
-            world[robot_pos[1]][wx] = " "
+            world[robot[1]][wx] = " "
 
-        # collision
-        if safe_world(world, wx, robot_pos[1]) == "W":
-            status = "stopped"
-            view = get_view(world, offset)
-            draw_scene(robot_pos, view, distance, score, direction, status)
-            print("Robot touched wall! GAME OVER")
-            break
-
-        # scroll only when moving forward
-        if direction == "right" or direction == "jump":
-            offset += 1
-            distance += 1
-
-        status = "moving"
+        offset += 1
+        distance += 1
 
         if distance >= PATH_LENGTH:
-            status = "stopped"
-            view = get_view(world, offset)
-            draw_scene(robot_pos, view, distance, score, direction, status)
-            print(f"{robot_name} finished the run! GAME OVER")
+            status = "finished"
             break
 
         time.sleep(SPEED)
 
-    print("\nFinal Report")
-    print("Distance:", distance)
-    print("Score:", score)
-    print("Direction:", direction)
-    print("Status:", status)
+    clear()
+    print("🎉 VICTORY SCREEN 🎉")
+    print(f"Robot: {robot_name}")
+    print(f"Distance travelled: {distance}")
+    print(f"Final score: {score}")
+    print(f"Checkpoints: {checkpoints}")
+    print("Mission complete!")
+
+def main():
+    while True:
+        game()
+        again = input("\nReplay? (y/n): ").lower()
+        if again != "y":
+            break
 
 if __name__ == "__main__":
     main()
