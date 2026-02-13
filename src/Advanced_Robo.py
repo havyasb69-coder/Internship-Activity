@@ -4,15 +4,14 @@ import os
 
 WIDTH = 20
 HEIGHT = 10
-PATH_LENGTH = 80
+PATH_LENGTH = 20
 
 SYMBOLS = {
     "robot": "🤖",
     "person": "👤",
     "wall": "🧱",
     "coin": "💰",
-    "boss": "🚧",
-    "empty": "·"
+    "empty": "."
 }
 
 def clear():
@@ -29,8 +28,6 @@ def generate_world():
         row = []
         for x in range(PATH_LENGTH + WIDTH):
             tile = random.choice([" ", " ", "P", "W", "C"])
-            if x == PATH_LENGTH - 5:
-                tile = "B"
             row.append(tile)
         world.append(row)
     return world
@@ -56,48 +53,49 @@ def draw(robot, world, offset, distance, score, status):
                 if tile == "P": print(SYMBOLS["person"], end=" ")
                 elif tile == "W": print(SYMBOLS["wall"], end=" ")
                 elif tile == "C": print(SYMBOLS["coin"], end=" ")
-                elif tile == "B": print(SYMBOLS["boss"], end=" ")
                 else: print(SYMBOLS["empty"], end=" ")
         print()
     print("-" * 40)
 
-def countdown():
-    for i in range(3, 0, -1):
+def countdown_wait(seconds, robot, world, offset, distance, score):
+    for sec in range(seconds, 0, -1):
         clear()
-        print(f"Starting in {i}...")
+        print(f"Progress: {progress_bar(distance)}  Distance: {distance}/{PATH_LENGTH}")
+        print(f"Score: {score}  Status: PERSON AHEAD")
+        print("-" * 40)
+
+        for y in range(HEIGHT):
+            for x in range(WIDTH):
+                wx = offset + x
+                if [x, y] == robot:
+                    print(SYMBOLS["robot"], end=" ")
+                else:
+                    tile = safe(world, wx, y)
+                    if tile == "P": print(SYMBOLS["person"], end=" ")
+                    elif tile == "W": print(SYMBOLS["wall"], end=" ")
+                    elif tile == "C": print(SYMBOLS["coin"], end=" ")
+                    else: print(SYMBOLS["empty"], end=" ")
+            print()
+
+        print("-" * 40)
+        print("👤 Person detected ahead!")
+        print("🤖 Robot waiting... please stand by")
+        print(f"⏳ Countdown: {sec}")
         time.sleep(1)
 
 def game():
     robot_name = input("Robot name: ") or "Robo"
-    speed_choice = input("Speed level (slow/normal/fast): ").lower()
-
-    SPEED = 0.4
-    if speed_choice == "fast": SPEED = 0.15
-    elif speed_choice == "slow": SPEED = 0.6
-
-    countdown()
 
     world = generate_world()
     robot = [0, HEIGHT//2]
     offset = 0
     score = 0
     distance = 0
-    checkpoints = []
-    status = "auto-moving"
+    direction = "RIGHT"
 
     while True:
 
-        draw(robot, world, offset, distance, score, status)
-
-        # auto checkpoint every 10 distance
-        if distance % 10 == 0 and distance != 0 and distance not in checkpoints:
-            checkpoints.append(distance)
-
-        # random glitch
-        if random.random() < 0.08:
-            robot[1] += random.choice([-1, 1])
-            print("⚡ Direction glitch!")
-            time.sleep(0.4)
+        draw(robot, world, offset, distance, score, "moving")
 
         x, y = robot
         wx = offset + x
@@ -105,63 +103,37 @@ def game():
 
         # PERSON
         if front == "P":
-            status = "waiting"
-            print("Person ahead… waiting")
-            time.sleep(1)
+            countdown_wait(5, robot, world, offset, distance, score)
             robot[0] += 1
+            direction = "RIGHT"
 
-        # WALL (interactive)
+        # WALL
         elif front == "W":
-            status = "blocked"
-            draw(robot, world, offset, distance, score, status)
-            print("🧱 Wall ahead!")
+            draw(robot, world, offset, distance, score, "blocked")
+            move = input("Wall! Move (up/down/back): ").lower()
 
-            moved = False
-            while not moved:
-                move = input("Choose move (up/down/back/jump): ").lower()
-
-                if move == "jump":
-                    robot[0] += 1
-                    moved = True
-
-                elif move == "up":
-                    robot[1] -= 1
-                    moved = True
-
-                elif move == "down":
-                    robot[1] += 1
-                    moved = True
-
-                elif move == "back":
-                    robot[0] -= 1
-                    moved = True
-
-                else:
-                    print("Invalid choice. Try again.")
-
-        # BOSS WALL
-        elif front == "B":
-            status = "boss wall"
-            if score >= 50:
-                print("Boss destroyed!")
-                robot[0] += 1
-                score -= 50
-                time.sleep(1)
-            else:
-                print("Not enough score — waiting")
-                time.sleep(1)
-                continue
+            if move == "up":
+                robot[1] -= 1
+                direction = "UP"
+            elif move == "down":
+                robot[1] += 1
+                direction = "DOWN"
+            elif move == "back":
+                robot[0] -= 1
+                direction = "BACK"
+            continue
 
         # NORMAL MOVE
         else:
             robot[0] += 1
+            direction = "RIGHT"
 
-        robot[0] = max(0, min(robot[0], WIDTH-1))
         robot[1] = max(0, min(robot[1], HEIGHT-1))
+        robot[0] = max(0, min(robot[0], WIDTH-1))
 
         wx = offset + robot[0]
 
-        # collect coin
+        # coin collection
         if safe(world, wx, robot[1]) == "C":
             score += 20
             world[robot[1]][wx] = " "
@@ -170,25 +142,17 @@ def game():
         distance += 1
 
         if distance >= PATH_LENGTH:
-            status = "finished"
             break
 
-        time.sleep(SPEED)
+        time.sleep(0.25)
 
     clear()
-    print("🎉 VICTORY SCREEN 🎉")
-    print(f"Robot: {robot_name}")
-    print(f"Distance travelled: {distance}")
+    print("🏁 GAME OVER 🏁")
+    print(f"Robot name: {robot_name}")
     print(f"Final score: {score}")
-    print(f"Checkpoints: {checkpoints}")
+    print(f"Total distance: {distance}")
+    print(f"Final position: X={robot[0]}, Y={robot[1]}")
+    print(f"Direction faced: {direction}")
     print("Mission complete!")
 
-def main():
-    while True:
-        game()
-        again = input("\nReplay? (y/n): ").lower()
-        if again != "y":
-            break
-
-if __name__ == "__main__":
-    main()
+game()
