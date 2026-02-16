@@ -1,0 +1,16 @@
+ID,Name,Age,Gender,Salary,Experience,Department
+1,Aarav,22,M,25000,1,IT
+2,Diya,25,F,32000,3,HR
+3,Rohan,21,M,20000,1,Sales
+4,Meera,28,F,45000,5,IT
+5,Kabir,24,M,30000,2,Finance
+6,Anaya,26,F,38000,4,HR
+7,Arjun,23,M,22000,1,Sales
+8,Ishita,29,F,41000,6,IT
+9,Vihaan,27,M,27000,3,Finance
+10,Sara,25,F,35000,4,HR
+11,Riya,30,F,48000,7,IT
+12,Dev,22,M,24000,1,Sales
+13,Kiran,28,M,42000,5,Finance
+14,Neha,26,F,36000,3,HR
+15,Aditya,24,M,31000,2,IT
