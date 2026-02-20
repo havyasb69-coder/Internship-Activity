@@ -1,0 +1,64 @@
+Data base:
+sqlite3 sample.db
+
+#Table Creation
+CREATE TABLE students (
+    id INTEGER,
+    name TEXT,
+    marks INTEGER
+);
+
+#Insert sample data:
+INSERT INTO students VALUES (1, 'Amit', 85);
+INSERT INTO students VALUES (2, 'Riya', 92);
+INSERT INTO students VALUES (3, 'John', 78);
+
+#Run a basic query:
+SELECT * FROM students;d. Code Examples
+SELECT name, marks FROM students;
+
+#Query students with marks above 80:
+SELECT * FROM students WHERE marks > 80;
+
+#Combine conditions:
+SELECT * FROM students WHERE marks > 80 AND name != 'John';
+SELECT name FROM students WHERE marks >= 90;
+
+#Create a new table:
+CREATE TABLE scores (
+    subject TEXT,
+    marks INTEGER
+);
+
+
+#Insert data:
+INSERT INTO scores VALUES ('Math', 80);
+INSERT INTO scores VALUES ('Math', 90);
+INSERT INTO scores VALUES ('Science', 85);
+
+
+#Aggregate:
+SELECT subject, AVG(marks) FROM scores GROUP BY subject;
+SELECT subject, COUNT(*) FROM scores GROUP BY subject;
+
+#Create another table:
+CREATE TABLE departments (
+    id INTEGER,
+    dept TEXT
+);
+
+
+#Join tables:
+SELECT students.name, departments.dept FROM students
+
+#INNER JOIN departments
+ON students.id = departments.id;
+
+
+#Python connection:
+import sqlite3
+import pandas as pd
+
+conn = sqlite3.connect("sample.db")
+df = pd.read_sql_query("SELECT * FROM students", conn)
+print(df)
