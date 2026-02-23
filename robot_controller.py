@@ -1,132 +1,187 @@
-import tkinter as tk
+import random
+import time
+import os
 
-x = 20
-y = 120
-speed = 5
-game_over = False
+WIDTH = 12
+HEIGHT = 10
+NUM_STEPS = WIDTH  # length of the path
 
-# --- BUZZER ---
+def clear():
+    os.system("cls" if os.name=="nt" else "clear")
 
-def buzzer(times=5):
-    if times > 0:
-        root.bell()
-        root.after(150, lambda: buzzer(times-1))
+def draw_scene(robot, persons, walls, door):
+    for y in range(HEIGHT):
+        for x in range(WIDTH):
+            pos = [x, y]
+            if pos == robot:
+                print("R", end=" ")
+            elif pos in persons:
+                print("P", end=" ")
+            elif pos in walls:
+                print("W", end=" ")
+            elif pos == door:
+                print("D", end=" ")
+            else:
+                print(".", end=" ")
+        print()
+    print("\nR=Robot  P=Person  W=Wall  D=Door\n")
 
-# --- COLLISION FUNCTIONS ---
+def random_positions(exclude_positions, count):
+    positions = []
+    while len(positions) < count:
+        pos = [random.randint(0, WIDTH-1), random.randint(0, HEIGHT-1)]
+        if pos not in exclude_positions and pos not in positions:
+            positions.append(pos)
+    return positions
 
-def hit_wall(nx, ny):
-    return (
-        nx+40 > 200 and nx < 240 and
-        ny+40 > 100 and ny < 160
-    )
+def main():
+    # Robot name
+    robot_name = input("Enter Robot Name: ").strip() or "Robo"
 
-def hit_door(nx):
-    return nx+40 >= 260
+    # Target distance
+    while True:
+        try:
+            max_distance = int(input("Enter distance for the robot to travel: "))
+            if max_distance <= 0:
+                print("Distance must be positive.")
+                continue
+            break
+        except:
+            print("Enter a valid number.")
 
-def hit_person(nx, ny):
-    # person area
-    return (
-        nx+40 > 150 and nx < 190 and
-        ny+40 > 60 and ny < 120
-    )
+    # Initialize robot
+    robot = [0, random.randint(0, HEIGHT-1)]
+    door = [WIDTH-1, random.randint(0, HEIGHT-1)]
 
-# --- DRAW ---
+    speed = 1
+    distance_travelled = 0
+    direction = "right"
+    travelling_status = "moving"
+    game_over = False
 
-def draw_scene():
-    canvas.delete("all")
+    # Create obstacles in each step
+    persons = []
+    walls = []
+    for step in range(1, WIDTH-1):  # leave start and end free
+        y_pos_person = random.randint(0, HEIGHT-1)
+        y_pos_wall = random.randint(0, HEIGHT-1)
+        persons.append([step, y_pos_person])
+        walls.append([step, y_pos_wall])
 
-    # Robot
-    canvas.create_rectangle(x, y, x+40, y+40, fill="gray")
+    while not game_over:
+        clear()
+        draw_scene(robot, persons, walls, door)
+        print(f"Robot: {robot_name}")
+        print(f"Distance Travelled: {distance_travelled}")
+        print(f"Status: {travelling_status}")
+        print(f"Current Direction: {direction}\n")
 
-    # Person
-    canvas.create_oval(150, 60, 190, 120, fill="peachpuff")
-    canvas.create_text(170, 130, text="Person")
+        # Stop if reached max distance
+        if distance_travelled >= max_distance:
+            travelling_status = "stopped"
+            print(f"Target distance reached! GAME OVER")
+            print(f"Total Distance Travelled: {distance_travelled}")
+            print(f"Final Status: {travelling_status}")
+            print(f"Final Direction: {direction}")
+            break
 
-    # Wall
-    canvas.create_rectangle(200, 100, 240, 160, fill="brown")
-    canvas.create_text(220, 170, text="Wall")
+        robot_x, robot_y = robot
+        obstacle_ahead = None
+        obstacle_type = None
 
-    # Door
-    canvas.create_rectangle(260, 100, 295, 170, fill="darkred")
-    canvas.create_text(278, 180, text="Door")
+        # Check nearest person in front
+        for p in persons:
+            if p[1] == robot_y and p[0] > robot_x:
+                if obstacle_ahead is None or p[0] < obstacle_ahead[0]:
+                    obstacle_ahead = p
+                    obstacle_type = "person"
 
-# --- AUTO MOVE ---
+        # Check nearest wall in front
+        for w in walls:
+            if w[1] == robot_y and w[0] > robot_x:
+                if obstacle_ahead is None or w[0] < obstacle_ahead[0]:
+                    obstacle_ahead = w
+                    obstacle_type = "wall"
 
-def auto_move():
-    global x, game_over
+        # Steps to obstacle
+        if obstacle_ahead:
+            steps_to_obstacle = obstacle_ahead[0] - robot_x
+        else:
+            steps_to_obstacle = 1
 
-    if game_over:
-        return
+        # Person: stop 5 seconds in front
+        if obstacle_type == "person" and steps_to_obstacle <= 1:
+            print("Person ahead! Waiting 5 seconds...")
+            travelling_status = "stopped"
+            direction = "right"
+            time.sleep(5)
+            robot[0] += 1
+            distance_travelled += 1
+            travelling_status = "moving"
+            persons.remove(obstacle_ahead)
 
-    nx = x + speed
+        # Wall: stop 2 units in front and ask
+        elif obstacle_type == "wall" and steps_to_obstacle <= 2:
+            travelling_status = "stopped"
+            print("Wall ahead! Stop 2 units in front.")
+            print("Choose direction to move: up / down / back")
+            while True:
+                cmd = input("Direction: ").lower()
+                if cmd == "up" and robot[1] > 0:
+                    robot[1] -= 1
+                    direction = "up"
+                    distance_travelled += 1
+                    travelling_status = "moving"
+                    break
+                elif cmd == "down" and robot[1] < HEIGHT-1:
+                    robot[1] += 1
+                    direction = "down"
+                    distance_travelled += 1
+                    travelling_status = "moving"
+                    break
+                elif cmd == "back" and robot[0] > 0:
+                    robot[0] -= 1
+                    direction = "left"
+                    distance_travelled += 1
+                    travelling_status = "moving"
+                    break
+                else:
+                    print("Invalid move. Try again.")
 
-    if hit_person(nx, y):
-        game_over = True
-        status.set("Hit person! GAME OVER")
-        buzzer()
-        draw_scene()
-        return
+        # Normal move
+        else:
+            robot[0] += speed
+            distance_travelled += speed
+            direction = "right"
+            travelling_status = "moving"
 
-    if hit_door(nx):
-        game_over = True
-        status.set("Door reached! GAME OVER")
-        buzzer()
-        draw_scene()
-        return
+        # Check if robot touches wall
+        if robot in walls:
+            travelling_status = "stopped"
+            clear()
+            draw_scene(robot, persons, walls, door)
+            print("Robot hit the wall! GAME OVER")
+            print(f"Total Distance Travelled: {distance_travelled}")
+            print(f"Final Status: {travelling_status}")
+            print(f"Final Direction: {direction}")
+            game_over = True
 
-    if hit_wall(nx, y):
-        status.set("Wall ahead! Choose direction")
-        buzzer(2)
-        draw_scene()
-        return
+        # Bounds
+        robot[0] = min(robot[0], WIDTH-1)
+        robot[1] = max(0, min(robot[1], HEIGHT-1))
 
-    x = nx
-    status.set("Moving...")
-    draw_scene()
-    root.after(80, auto_move)
+        # Door check
+        if robot == door:
+            travelling_status = "stopped"
+            clear()
+            draw_scene(robot, persons, walls, door)
+            print(f"{robot_name} reached the door! GAME OVER")
+            print(f"Total Distance Travelled: {distance_travelled}")
+            print(f"Final Status: {travelling_status}")
+            print(f"Final Direction: {direction}")
+            game_over = True
 
-# --- BUTTON MOVES ---
+        time.sleep(0.5)
 
-def avoid_up():
-    global y
-    ny = max(0, y-30)
-    if not hit_wall(x, ny):
-        y = ny
-    draw_scene()
-
-def avoid_down():
-    global y
-    ny = min(180, y+30)
-    if not hit_wall(x, ny):
-        y = ny
-    draw_scene()
-
-def avoid_back():
-    global x
-    nx = max(10, x-40)
-    if not hit_wall(nx, y):
-        x = nx
-    draw_scene()
-
-# --- UI ---
-
-root = tk.Tk()
-root.title("Robot Simulator")
-root.geometry("400x320")
-
-canvas = tk.Canvas(root, width=300, height=220, bg="lightblue")
-canvas.pack()
-
-status = tk.StringVar()
-tk.Label(root, textvariable=status).pack()
-
-tk.Button(root, text="Start", command=auto_move).pack(pady=5)
-
-buttons = tk.Frame(root)
-buttons.pack()
-tk.Button(buttons, text="Up", command=avoid_up).pack(side="left")
-tk.Button(buttons, text="Down", command=avoid_down).pack(side="left")
-tk.Button(buttons, text="Back", command=avoid_back).pack(side="left")
-
-draw_scene()
-root.mainloop()
+if __name__ == "__main__":
+    main()
