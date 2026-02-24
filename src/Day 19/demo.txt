@@ -1,0 +1,6 @@
+<<<<<<< HEAD
+Hello from MAIN branch - updated
+=======
+Hello from FEATURE branch
+>>>>>>> feature-branch
+This is a Git conflict demo.
