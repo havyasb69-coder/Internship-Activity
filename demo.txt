@@ -1,2 +1,2 @@
-Hello from MAIN branch
+Hello from MAIN branch - updated
 This is a Git conflict demo.
