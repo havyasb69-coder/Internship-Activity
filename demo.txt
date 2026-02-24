@@ -1,2 +1,2 @@
-Hello from MAIN branch
+Hello from FEATURE branch
 This is a Git conflict demo.
