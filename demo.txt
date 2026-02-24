@@ -1,0 +1,2 @@
+Hello from MAIN branch
+This is a Git conflict demo.
