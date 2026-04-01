@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌿 LeafSense · disease finder demo</title>
+  <!-- Font Awesome 6 (free) & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #e3f0e3 0%, #c8ddc8 100%);
+      color: #1e2f1e;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      backdrop-filter: blur(2px);
+      animation: fadeInBody 1.2s ease-out;
+    }
+
+    @keyframes fadeInBody {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    /* responsive container */
+    .container {
+      width: 90%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0.5rem 0 2rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* header with transparency */
+    .navbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 2rem;
+      border-bottom: 2px solid rgba(160, 200, 160, 0.4);
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 60px;
+      margin-top: 0.8rem;
+      box-shadow: 0 8px 20px rgba(0, 40, 0, 0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1e5f1e;
+      text-shadow: 0 2px 6px rgba(255, 255, 255, 0.6);
+    }
+
+    .logo i {
+      font-size: 2rem;
+      color: #2b7a2b;
+      animation: floatLeaf 3s infinite ease-in-out;
+    }
+
+    @keyframes floatLeaf {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-5px) rotate(2deg); }
+      100% { transform: translateY(0); }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      font-weight: 500;
+      align-items: center;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #1e3f1e;
+      transition: 0.2s;
+      font-size: 1rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+    }
+
+    .nav-links a:hover {
+      background: rgba(70, 130, 70, 0.25);
+      color: #0b2f0b;
+      transform: scale(1.05);
+    }
+
+    /* language switcher */
+    .lang-switch {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: 1rem;
+    }
+    .lang-btn {
+      background: rgba(30, 70, 30, 0.5);
+      border: 2px solid rgba(120, 160, 120, 0.6);
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+      font-size: 0.9rem;
+    }
+    .lang-btn:hover {
+      background: rgba(50, 100, 50, 0.8);
+      transform: scale(1.05);
+      border-color: #8bc34a;
+    }
+    .lang-btn.active {
+      background: #2b7a2b;
+      border-color: #ffd966;
+    }
+
+    /* hero */
+    .hero {
+      text-align: center;
+      padding: 2.5rem 1rem 1.8rem;
+      animation: slideUp 1s ease-out;
+    }
+
+    @keyframes slideUp {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #1b4c1b;
+      letter-spacing: -0.02em;
+      text-shadow: 0 4px 8px rgba(255, 255, 255, 0.7);
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #2e4e2e;
+      max-width: 700px;
+      margin: 1rem auto 0;
+      background: rgba(245, 255, 245, 0.4);
+      backdrop-filter: blur(4px);
+      padding: 0.8rem 1.5rem;
+      border-radius: 60px;
+      display: inline-block;
+    }
+
+    /* upload card with transparency */
+    .upload-card {
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 48px;
+      padding: 2rem 2rem 2.2rem;
+      margin: 1.5rem 0 2.8rem;
+      box-shadow: 0 20px 32px -10px rgba(30, 60, 30, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .upload-card:hover {
+      transform: scale(1.01);
+      box-shadow: 0 24px 40px -12px #1f4a1f;
+    }
+
+    .upload-area {
+      border: 3px dashed rgba(80, 140, 80, 0.6);
+      background: rgba(240, 250, 240, 0.5);
+      backdrop-filter: blur(6px);
+      border-radius: 40px;
+      padding: 2.2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8rem;
+      cursor: default;
+      transition: 0.2s;
+    }
+
+    .upload-area i {
+      font-size: 3.5rem;
+      color: #1f5f1f;
+      opacity: 0.9;
+    }
+
+    .upload-area h3 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #154715;
+      text-shadow: 0 2px 4px rgba(255,255,200,0.5);
+    }
+
+    .upload-area p {
+      font-size: 1.1rem;
+      color: #1d3f1d;
+    }
+
+    .upload-btn {
+      background: rgba(31, 95, 31, 0.85);
+      backdrop-filter: blur(4px);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      padding: 0.9rem 2.5rem;
+      border-radius: 60px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 0.8rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 30, 0, 0.2);
+      transition: 0.15s;
+      animation: pulseSoft 2.5s infinite;
+    }
+
+    @keyframes pulseSoft {
+      0% { transform: scale(1); box-shadow: 0 4px 12px rgba(0, 30, 0, 0.2); }
+      50% { transform: scale(1.03); box-shadow: 0 8px 20px rgba(30, 90, 30, 0.4); }
+      100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0, 30, 0, 0.2); }
+    }
+
+    .upload-btn:hover {
+      background: rgba(43, 122, 43, 0.9);
+      transform: scale(1.02);
+      border-color: rgba(255, 255, 255, 0.9);
+      animation: none;
+    }
+
+    /* gallery title */
+    .gallery-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 1.8rem 0 1.2rem;
+      background: rgba(210, 230, 210, 0.4);
+      backdrop-filter: blur(4px);
+      padding: 0.6rem 1.8rem;
+      border-radius: 60px;
+      width: fit-content;
+      animation: slideUp 0.8s ease-out;
+    }
+
+    .gallery-title i {
+      font-size: 2rem;
+      color: #1f5f1f;
+      opacity: 0.9;
+    }
+
+    .gallery-title h2 {
+      font-size: 2rem;
+      font-weight: 650;
+      color: #1a401a;
+      text-shadow: 0 2px 4px rgba(255, 255, 240, 0.6);
+    }
+
+    /* responsive grid */
+    .leaf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 2.8rem;
+    }
+
+    /* leaf card with transparency and blur + animation */
+    .leaf-card {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 16px 28px -10px rgba(0, 30, 0, 0.2);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      animation: cardAppear 0.5s ease forwards;
+    }
+
+    .leaf-card:nth-child(1) { animation-delay: 0.1s; }
+    .leaf-card:nth-child(2) { animation-delay: 0.2s; }
+    .leaf-card:nth-child(3) { animation-delay: 0.3s; }
+    .leaf-card:nth-child(4) { animation-delay: 0.4s; }
+    .leaf-card:nth-child(5) { animation-delay: 0.5s; }
+    .leaf-card:nth-child(6) { animation-delay: 0.6s; }
+
+    @keyframes cardAppear {
+      0% { opacity: 0; transform: translateY(15px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .leaf-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      background: rgba(255, 255, 255, 0.4);
+      border-color: rgba(120, 180, 120, 0.7);
+      box-shadow: 0 28px 40px -12px #1f4a1f;
+    }
+
+    .leaf-img {
+      width: 100%;
+      height: 210px;
+      object-fit: cover;
+      background: rgba(200, 220, 200, 0.5);
+      display: block;
+      opacity: 0.95;
+      transition: transform 0.5s ease, opacity 0.2s;
+    }
+
+    .leaf-card:hover .leaf-img {
+      transform: scale(1.08);
+      opacity: 1;
+    }
+
+    .leaf-info {
+      padding: 1.3rem 1.2rem 1.5rem;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(6px);
+      flex: 1;
+      transition: background 0.2s;
+    }
+
+    .leaf-card:hover .leaf-info {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .leaf-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1b451b;
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-shadow: 0 2px 2px rgba(255, 255, 200, 0.5);
+    }
+
+    .confidence {
+      background: rgba(220, 240, 220, 0.7);
+      backdrop-filter: blur(2px);
+      color: #1b6b1b;
+      padding: 0.3rem 0.8rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border: 1px solid rgba(100, 160, 100, 0.4);
+      transition: background 0.2s;
+    }
+
+    .leaf-card:hover .confidence {
+      background: rgba(210, 240, 210, 0.9);
+    }
+
+    .leaf-desc {
+      color: #1f3f1f;
+      margin: 0.4rem 0 1.2rem;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+    .detail-btn {
+      background: rgba(45, 122, 45, 0.2);
+      backdrop-filter: blur(4px);
+      border: 2px solid rgba(45, 122, 45, 0.6);
+      color: #1d5a1d;
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: default;
+      width: fit-content;
+      transition: all 0.2s;
+    }
+
+    .leaf-card:hover .detail-btn {
+      background: rgba(60, 140, 60, 0.3);
+      border-color: rgba(45, 122, 45, 0.9);
+      transform: scale(1.02);
+    }
+
+    /* footer with transparency */
+    .footer {
+      border-top: 2px solid rgba(150, 190, 150, 0.4);
+      padding: 2rem 0 1.2rem;
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      color: #1f421f;
+      background: rgba(240, 250, 240, 0.3);
+      backdrop-filter: blur(8px);
+      border-radius: 40px;
+      padding: 1.5rem 2rem;
+      animation: fadeInBody 1.5s ease;
+    }
+
+    .footer a {
+      color: #1e5a1e;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.2rem 0.6rem;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 30px;
+      transition: all 0.2s;
+    }
+
+    .footer a:hover {
+      background: rgba(80, 130, 80, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .attribution i {
+      color: #307530;
+    }
+
+    /* ===== ANIMATED CODE BLOCK ===== */
+    .code-block {
+      background: #1e2b1ee0;
+      color: #d4f0d4;
+      padding: 1.2rem;
+      border-radius: 20px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      margin: 2rem 0 0.5rem;
+      border: 2px solid #558755;
+      backdrop-filter: blur(2px);
+      animation: glowPulse 3s infinite ease-in-out;
+      transition: all 0.3s ease;
+    }
+
+    @keyframes glowPulse {
+      0% { border-color: #558755; box-shadow: 0 0 5px #6ba86b; }
+      50% { border-color: #7fb87f; box-shadow: 0 0 15px #8bc34a; }
+      100% { border-color: #558755; box-shadow: 0 0 5px #6ba86b; }
+    }
+
+    details[open] .code-block {
+      animation: slideFadeIn 0.5s ease, glowPulse 3s infinite ease-in-out;
+    }
+
+    @keyframes slideFadeIn {
+      0% { opacity: 0; transform: translateY(-10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .code-summary {
+      user-select: none;
+      cursor: pointer;
+      background: rgba(235, 245, 235, 0.7);
+      backdrop-filter: blur(6px);
+      padding: 0.7rem 1.5rem;
+      border-radius: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 600;
+      border: 1px solid rgba(150, 200, 150, 0.8);
+      margin-bottom: 1rem;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .code-summary:hover {
+      background: rgba(215, 235, 215, 0.9);
+      transform: scale(1.02);
+    }
+
+    .code-summary i {
+      color: #1f601f;
+      transition: transform 0.3s ease;
+    }
+
+    .code-summary:hover i {
+      transform: rotate(180deg);
+    }
+
+    /* ===== DAILY NEWS BUTTON & MODAL ===== */
+    .news-button-container {
+      display: flex;
+      justify-content: center;
+      margin: 1.5rem 0 2rem;
+    }
+
+    .daily-news-btn {
+      background: rgba(30, 70, 30, 0.85);
+      backdrop-filter: blur(8px);
+      color: white;
+      border: 2px solid rgba(255, 215, 140, 0.6);
+      padding: 1.2rem 3rem;
+      border-radius: 60px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 30, 0, 0.3);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      letter-spacing: 0.5px;
+      animation: newsPulse 3s infinite;
+    }
+
+    @keyframes newsPulse {
+      0% { transform: scale(1); box-shadow: 0 8px 20px rgba(0, 30, 0, 0.3); }
+      50% { transform: scale(1.02); box-shadow: 0 12px 28px rgba(200, 150, 50, 0.4); border-color: rgba(255, 200, 100, 0.9); }
+      100% { transform: scale(1); box-shadow: 0 8px 20px rgba(0, 30, 0, 0.3); }
+    }
+
+    .daily-news-btn:hover {
+      background: rgba(50, 100, 50, 0.95);
+      transform: scale(1.03);
+      border-color: #ffd966;
+    }
+
+    .daily-news-btn i {
+      font-size: 1.6rem;
+      color: #ffd966;
+    }
+
+    /* Modal overlay */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 20, 0, 0.6);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      animation: modalFadeIn 0.3s ease;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: rgba(240, 250, 240, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 40px;
+      padding: 2.5rem;
+      max-width: 700px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 2px solid rgba(100, 150, 100, 0.5);
+      box-shadow: 0 30px 50px rgba(0, 40, 0, 0.4);
+      animation: modalSlideUp 0.4s ease;
+    }
+
+    @keyframes modalSlideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid rgba(80, 120, 80, 0.3);
+      padding-bottom: 1rem;
+    }
+
+    .modal-header h2 {
+      font-size: 2rem;
+      color: #1a4a1a;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .modal-header i {
+      color: #b8860b;
+    }
+
+    .close-modal {
+      background: rgba(100, 100, 100, 0.2);
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      color: #1e3f1e;
+    }
+
+    .close-modal:hover {
+      background: rgba(150, 50, 50, 0.3);
+      transform: scale(1.1);
+    }
+
+    .news-date {
+      background: rgba(30, 70, 30, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    .news-item {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(4px);
+      border-radius: 24px;
+      padding: 1.2rem;
+      margin-bottom: 1.2rem;
+      border-left: 6px solid #5a8f5a;
+      transition: transform 0.2s;
+    }
+
+    .news-item:hover {
+      transform: translateX(8px);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .news-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1d4f1d;
+      margin-bottom: 0.4rem;
+    }
+
+    .news-source {
+      font-size: 0.9rem;
+      color: #4a6e4a;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .news-source i {
+      font-size: 0.8rem;
+      color: #b07d2e;
+    }
+
+    .refresh-note {
+      margin-top: 1.5rem;
+      padding: 0.8rem;
+      background: rgba(200, 220, 200, 0.5);
+      border-radius: 30px;
+      text-align: center;
+      font-size: 0.9rem;
+      border: 1px dashed #6b8e6b;
+    }
+
+    /* small screens adjustments */
+    @media (max-width: 600px) {
+      .navbar {
+        flex-direction: column;
+        gap: 0.8rem;
+        padding: 1rem;
+      }
+      .hero h1 {
+        font-size: 2rem;
+      }
+      .upload-area h3 {
+        font-size: 1.5rem;
+      }
+      .gallery-title h2 {
+        font-size: 1.7rem;
+      }
+      .leaf-img {
+        height: 180px;
+      }
+      .footer {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.6rem;
+      }
+      .daily-news-btn {
+        font-size: 1.2rem;
+        padding: 1rem 2rem;
+      }
+      .modal-content {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- header with glass effect -->
+    <nav class="navbar">
+      <div class="logo">
+        <i class="fas fa-leaf"></i>
+        <span>LeafSense</span>
+      </div>
+      <div class="nav-links">
+        <a href="#" data-i18n="nav-home">Home</a>
+        <a href="#" data-i18n="nav-gallery">Gallery</a>
+        <a href="#" data-i18n="nav-about">About</a>
+        <a href="#" data-i18n="nav-contact">Contact</a>
+        <!-- language switcher -->
+        <div class="lang-switch">
+          <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">English</button>
+          <button class="lang-btn" id="lang-kn" onclick="setLanguage('kn')">ಕನ್ನಡ</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- hero -->
+    <section class="hero">
+      <h1 data-i18n="hero-title">Find leaf disease instantly</h1>
+      <p data-i18n="hero-sub">Upload a photo or browse our sample library — AI-powered identification (demo).</p>
+    </section>
+
+    <!-- DAILY NEWS BULLETIN BUTTON -->
+    <div class="news-button-container">
+      <button class="daily-news-btn" onclick="document.getElementById('newsModal').style.display='flex'">
+        <i class="fas fa-newspaper"></i> <span data-i18n="news-btn">📰 Daily Disease Bulletin</span>
+        <i class="fas fa-chevron-right" style="font-size: 1rem;"></i>
+      </button>
+    </div>
+
+    <!-- mock upload card with transparency -->
+    <div class="upload-card">
+      <div class="upload-area">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <h3 data-i18n="upload-title">Drop your leaf image</h3>
+        <p data-i18n="upload-desc">or click to browse (demo preview)</p>
+        <button class="upload-btn" onclick="alert('✨ Demo: actual detection would run here.')">
+          <i class="fas fa-search" style="margin-right: 8px;"></i><span data-i18n="upload-btn">simulate diagnose</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- sample leaf gallery -->
+    <div class="gallery-title">
+      <i class="fas fa-images"></i>
+      <h2 data-i18n="gallery-title">🍃 sample leaf library</h2>
+    </div>
+
+    <div class="leaf-grid">
+      <!-- card 1 - healthy -->
+      <div class="leaf-card">
+        <img class="leaf-img" src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=300&auto=format&fit=crop" alt="Fresh green lettuce leaf" loading="lazy">
+        <div class="leaf-info">
+          <div class="leaf-name">
+            <span data-i18n="card1-name">Healthy</span> <span class="confidence">98%</span>
+          </div>
+          <div class="leaf-desc" data-i18n="card1-desc">Vibrant green, no lesions. Typical healthy leaf.</div>
+          <div class="detail-btn" data-i18n="view-sample">view sample</div>
+        </div>
+      </div>
+      <!-- card 2 - leaf spot -->
+      <div class="leaf-card">
+        <img class="leaf-img" src="https://images.unsplash.com/photo-1584028671109-c897190bc7be?w=300&auto=format&fit=crop" alt="Leaf with brown spots" loading="lazy">
+        <div class="leaf-info">
+          <div class="leaf-name">
+            <span data-i18n="card2-name">Leaf spot</span> <span class="confidence">87%</span>
+          </div>
+          <div class="leaf-desc" data-i18n="card2-desc">Dark lesions with yellow halo – fungal leaf spot.</div>
+          <div class="detail-btn" data-i18n="view-sample">view sample</div>
+        </div>
+      </div>
+      <!-- card 3 - rust -->
+      <div class="leaf-card">
+        <img class="leaf-img" src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=300&auto=format&fit=crop" alt="Yellowish rust on leaf" loading="lazy">
+        <div class="leaf-info">
+          <div class="leaf-name">
+            <span data-i18n="card3-name">Rust</span> <span class="confidence">92%</span>
+          </div>
+          <div class="leaf-desc" data-i18n="card3-desc">Pustules with orange/brown spores – rust fungus.</div>
+          <div class="detail-btn" data-i18n="view-sample">view sample</div>
+        </div>
+      </div>
+      <!-- card 4 - powdery mildew -->
+      <div class="leaf-card">
+        <img class="leaf-img" src="https://images.unsplash.com/photo-1591123120675-6f7f1aae0e0b?w=300&auto=format&fit=crop" alt="Leaf with white powdery coating" loading="lazy">
+        <div class="leaf-info">
+          <div class="leaf-name">
+            <span data-i18n="card4-name">Powdery mildew</span> <span class="confidence">79%</span>
+          </div>
+          <div class="leaf-desc" data-i18n="card4-desc">White powdery patches on upper surface.</div>
+          <div class="detail-btn" data-i18n="view-sample">view sample</div>
+        </div>
+      </div>
+      <!-- card 5 - healthy -->
+      <div class="leaf-card">
+        <img class="leaf-img" src="https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?w=300&auto=format&fit=crop" alt="Shiny green leaf" loading="lazy">
+        <div class="leaf-info">
+          <div class="leaf-name">
+            <span data-i18n="card5-name">Healthy</span> <span class="confidence">96%</span>
+          </div>
+          <div class="leaf-desc" data-i18n="card5-desc">Uniform colour, no spots or distortion.</div>
+          <div class="detail-btn" data-i18n="view-sample">view sample</div>
+        </div>
+      </div>
+      <!-- card 6 - scab -->
+      <div class="leaf-card">
+        <img class="leaf-img" src="https://images.unsplash.com/photo-1471879832106-c7ab9e0cee23?w=300&auto=format&fit=crop" alt="Leaf with dark scabby spots" loading="lazy">
+        <div class="leaf-info">
+          <div class="leaf-name">
+            <span data-i18n="card6-name">Leaf scab</span> <span class="confidence">83%</span>
+          </div>
+          <div class="leaf-desc" data-i18n="card6-desc">Rough, dark lesions – common in fruit trees.</div>
+          <div class="detail-btn" data-i18n="view-sample">view sample</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer with transparency -->
+    <footer class="footer">
+      <div class="attribution">
+        <i class="fas fa-camera"></i> <span data-i18n="footer-attribution">leaf photos from <a href="https://unsplash.com" target="_blank">Unsplash</a> (demo use)</span>
+      </div>
+      <div>
+        🌱 <a href="#" data-i18n="footer-about">about</a> · <a href="#" data-i18n="footer-privacy">privacy</a> · <span data-i18n="footer-brand">🌿 2025 LeafSense</span>
+      </div>
+    </footer>
+
+    <!-- preview / code expander -->
+    <details style="margin-top: 2.5rem; border-top: 2px dashed rgba(160, 200, 160, 0.6); padding-top: 1.5rem;">
+      <summary class="code-summary"><i class="fas fa-code"></i> <span data-i18n="code-summary">👁️ preview page source (HTML/CSS) – click to expand</span></summary>
+      <div class="code-block">
+        &lt;!-- Full HTML/CSS with multilingual support --&gt;
+      </div>
+    </details>
+
+    <p style="text-align: right; margin: 1rem 0 0.2rem; color: #1f461f; background: rgba(230, 245, 230, 0.5); padding: 0.4rem 1.2rem; border-radius: 40px; display: inline-block; float: right; transition: all 0.2s;">
+      <i class="fas fa-mouse-pointer" style="transition: transform 0.2s;"></i> <span data-i18n="floating-note">preview + source — fully responsive + animations</span>
+    </p>
+    <div style="clear: both;"></div>
+  </div>
+
+  <!-- DAILY NEWS MODAL (popup) -->
+  <div id="newsModal" class="modal" onclick="if(event.target === this) this.style.display='none'">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-leaf"></i> <span data-i18n="modal-title">Today's Disease Bulletin</span></h2>
+        <button class="close-modal" onclick="document.getElementById('newsModal').style.display='none'">&times;</button>
+      </div>
+      
+      <div class="news-date">
+        <i class="far fa-calendar-alt"></i> <span data-i18n="modal-date">February 26, 2026 · Updated daily</span>
+      </div>
+
+      <!-- News item 1 -->
+      <div class="news-item">
+        <div class="news-title" data-i18n="news1-title">🌾 Wheat Rust (Puccinia striiformis) Alert - Punjab region</div>
+        <div class="news-source"><i class="fas fa-rss"></i> <span data-i18n="news1-source">Plant Pathology Today · 2 hours ago</span></div>
+        <p data-i18n="news1-desc" style="margin-top: 8px; color: #2b4f2b;">Yellow rust detected in northern districts. Immediate fungicide advised for susceptible varieties.</p>
+      </div>
+
+      <!-- News item 2 -->
+      <div class="news-item">
+        <div class="news-title" data-i18n="news2-title">🍅 Late Blight (Phytophthora infestans) - Tomato growers advisory</div>
+        <div class="news-source"><i class="fas fa-rss"></i> <span data-i18n="news2-source">Crop Protection Network · 5 hours ago</span></div>
+        <p data-i18n="news2-desc" style="margin-top: 8px; color: #2b4f2b;">Cool, wet conditions favor rapid spread. Scout fields and apply protective measures.</p>
+      </div>
+
+      <!-- News item 3 -->
+      <div class="news-item">
+        <div class="news-title" data-i18n="news3-title">🌽 Corn Leaf Blight reported in Midwest</div>
+        <div class="news-source"><i class="fas fa-rss"></i> <span data-i18n="news3-source">USDA Pest Alert · 1 day ago</span></div>
+        <p data-i18n="news3-desc" style="margin-top: 8px; color: #2b4f2b;">Northern Corn Leaf Blight confirmed in 3 new counties. Resistant hybrids recommended.</p>
+      </div>
+
+      <!-- News item 4 -->
+      <div class="news-item">
+        <div class="news-title" data-i18n="news4-title">🍇 Powdery Mildew outbreak - vineyards, Napa Valley</div>
+        <div class="news-source"><i class="fas fa-rss"></i> <span data-i18n="news4-source">Viticulture News · 1 day ago</span></div>
+        <p data-i18n="news4-desc" style="margin-top: 8px; color: #2b4f2b;">Early season pressure high. Sulfur applications scheduled.</p>
+      </div>
+
+      <div class="refresh-note">
+        <i class="fas fa-sync-alt" style="margin-right: 6px;"></i> <span data-i18n="refresh-note">This bulletin updates daily via RSS feeds from plant pathology services. In production, would fetch from SmartFarm API or CGIAR media monitor.</span>
+        <div style="margin-top: 8px; font-size: 0.8rem; background: rgba(0,0,0,0.05); padding: 6px; border-radius: 20px;">
+          🔗 <span data-i18n="refresh-links">Real data sources:</span> <a href="#" style="color:#1d5a1d;">RSS Plant Pathology</a> · <a href="#" style="color:#1d5a1d;">DiseaseRisk API</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Translation dictionary
+    const translations = {
+      en: {
+        'nav-home': 'Home',
+        'nav-gallery': 'Gallery',
+        'nav-about': 'About',
+        'nav-contact': 'Contact',
+        'hero-title': 'Find leaf disease instantly',
+        'hero-sub': 'Upload a photo or browse our sample library — AI-powered identification (demo).',
+        'upload-title': 'Drop your leaf image',
+        'upload-desc': 'or click to browse (demo preview)',
+        'upload-btn': 'simulate diagnose',
+        'gallery-title': '🍃 sample leaf library',
+        'card1-name': 'Healthy',
+        'card1-desc': 'Vibrant green, no lesions. Typical healthy leaf.',
+        'card2-name': 'Leaf spot',
+        'card2-desc': 'Dark lesions with yellow halo – fungal leaf spot.',
+        'card3-name': 'Rust',
+        'card3-desc': 'Pustules with orange/brown spores – rust fungus.',
+        'card4-name': 'Powdery mildew',
+        'card4-desc': 'White powdery patches on upper surface.',
+        'card5-name': 'Healthy',
+        'card5-desc': 'Uniform colour, no spots or distortion.',
+        'card6-name': 'Leaf scab',
+        'card6-desc': 'Rough, dark lesions – common in fruit trees.',
+        'view-sample': 'view sample',
+        'footer-attribution': 'leaf photos from <a href="https://unsplash.com" target="_blank">Unsplash</a> (demo use)',
+        'footer-about': 'about',
+        'footer-privacy': 'privacy',
+        'footer-brand': '🌿 2025 LeafSense',
+        'news-btn': '📰 Daily Disease Bulletin',
+        'modal-title': "Today's Disease Bulletin",
+        'modal-date': 'February 26, 2026 · Updated daily',
+        'news1-title': '🌾 Wheat Rust (Puccinia striiformis) Alert - Punjab region',
+        'news1-source': 'Plant Pathology Today · 2 hours ago',
+        'news1-desc': 'Yellow rust detected in northern districts. Immediate fungicide advised for susceptible varieties.',
+        'news2-title': '🍅 Late Blight (Phytophthora infestans) - Tomato growers advisory',
+        'news2-source': 'Crop Protection Network · 5 hours ago',
+        'news2-desc': 'Cool, wet conditions favor rapid spread. Scout fields and apply protective measures.',
+        'news3-title': '🌽 Corn Leaf Blight reported in Midwest',
+        'news3-source': 'USDA Pest Alert · 1 day ago',
+        'news3-desc': 'Northern Corn Leaf Blight confirmed in 3 new counties. Resistant hybrids recommended.',
+        'news4-title': '🍇 Powdery Mildew outbreak - vineyards, Napa Valley',
+        'news4-source': 'Viticulture News · 1 day ago',
+        'news4-desc': 'Early season pressure high. Sulfur applications scheduled.',
+        'refresh-note': 'This bulletin updates daily via RSS feeds from plant pathology services. In production, would fetch from SmartFarm API or CGIAR media monitor.',
+        'refresh-links': 'Real data sources:',
+        'code-summary': '👁️ preview page source (HTML/CSS) – click to expand',
+        'floating-note': 'preview + source — fully responsive + animations'
+      },
+      kn: {
+        'nav-home': 'ಮುಖಪುಟ',
+        'nav-gallery': 'ಗ್ಯಾಲರಿ',
+        'nav-about': 'ನಮ್ಮ ಬಗ್ಗೆ',
+        'nav-contact': 'ಸಂಪರ್ಕ',
+        'hero-title': 'ಎಲೆ ರೋಗವನ್ನು ತ್ವರಿತವಾಗಿ ಪತ್ತೆ ಮಾಡಿ',
+        'hero-sub': 'ಫೋಟೋ ಅಪ್ಲೋಡ್ ಮಾಡಿ ಅಥವಾ ನಮ್ಮ ಮಾದರಿ ಗ್ರಂಥಾಲಯವನ್ನು ಬ್ರೌಸ್ ಮಾಡಿ — AI-ಚಾಲಿತ ಗುರುತಿಸುವಿಕೆ (ಡೆಮೊ).',
+        'upload-title': 'ನಿಮ್ಮ ಎಲೆಯ ಚಿತ್ರವನ್ನು ಹಾಕಿ',
+        'upload-desc': 'ಅಥವಾ ಬ್ರೌಸ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ (ಡೆಮೊ ಪೂರ್ವವೀಕ್ಷಣೆ)',
+        'upload-btn': 'ರೋಗ ಪತ್ತೆಯನ್ನು ಸಿಮ್ಯುಲೇಟ್ ಮಾಡಿ',
+        'gallery-title': '🍃 ಮಾದರಿ ಎಲೆ ಗ್ರಂಥಾಲಯ',
+        'card1-name': 'ಆರೋಗ್ಯಕರ',
+        'card1-desc': 'ಹಸಿರು ಬಣ್ಣ, ಯಾವುದೇ ಗಾಯಗಳಿಲ್ಲ. ವಿಶಿಷ್ಟ ಆರೋಗ್ಯಕರ ಎಲೆ.',
+        'card2-name': 'ಎಲೆ ಚುಕ್ಕೆ',
+        'card2-desc': 'ಹಳದಿ ಪ್ರಭಾವಳಿಯೊಂದಿಗೆ ಗಾಢವಾದ ಗಾಯಗಳು – ಶಿಲೀಂಧ್ರ ಎಲೆ ಚುಕ್ಕೆ.',
+        'card3-name': 'ತುಕ್ಕು',
+        'card3-desc': 'ಕಿತ್ತಳೆ/ಕಂದು ಬೀಜಕಗಳೊಂದಿಗೆ ಪಸ್ಟೂಲ್ಗಳು – ತುಕ್ಕು ಶಿಲೀಂಧ್ರ.',
+        'card4-name': 'ಸೂಕ್ಷ್ಮ ಶಿಲೀಂಧ್ರ',
+        'card4-desc': 'ಮೇಲ್ಮೈಯಲ್ಲಿ ಬಿಳಿ ಪುಡಿಯಂತಹ ತೇಪೆಗಳು.',
+        'card5-name': 'ಆರೋಗ್ಯಕರ',
+        'card5-desc': 'ಏಕರೂಪದ ಬಣ್ಣ, ಯಾವುದೇ ಕಲೆಗಳು ಅಥವಾ ವಿರೂಪವಿಲ್ಲ.',
+        'card6-name': 'ಎಲೆ ಹುರುಪೆ',
+        'card6-desc': 'ಒರಟು, ಗಾಢವಾದ ಗಾಯಗಳು – ಹಣ್ಣಿನ ಮರಗಳಲ್ಲಿ ಸಾಮಾನ್ಯ.',
+        'view-sample': 'ಮಾದರಿ ವೀಕ್ಷಿಸಿ',
+        'footer-attribution': 'ಎಲೆ ಫೋಟೋಗಳು <a href="https://unsplash.com" target="_blank">Unsplash</a> ನಿಂದ (ಡೆಮೊ ಬಳಕೆ)',
+        'footer-about': 'ನಮ್ಮ ಬಗ್ಗೆ',
+        'footer-privacy': 'ಗೌಪ್ಯತೆ',
+        'footer-brand': '🌿 2025 ಲೀಫ್ಸೆನ್ಸ್',
+        'news-btn': '📰 ದೈನಂದಿನ ರೋಗ ಬುಲೆಟಿನ್',
+        'modal-title': 'ಇಂದಿನ ರೋಗ ಬುಲೆಟಿನ್',
+        'modal-date': 'ಫೆಬ್ರವರಿ 26, 2026 · ದೈನಂದಿನ ನವೀಕರಣ',
+        'news1-title': '🌾 ಗೋಧಿ ತುಕ್ಕು (ಪುಸಿನಿಯಾ ಸ್ಟ್ರೈಫಾರ್ಮಿಸ್) ಎಚ್ಚರಿಕೆ - ಪಂಜಾಬ್ ಪ್ರದೇಶ',
+        'news1-source': 'ಪ್ಲಾಂಟ್ ಪ್ಯಾಥಾಲಜಿ ಟುಡೆ · 2 ಗಂಟೆಗಳ ಹಿಂದೆ',
+        'news1-desc': 'ಉತ್ತರ ಜಿಲ್ಲೆಗಳಲ್ಲಿ ಹಳದಿ ತುಕ್ಕು ಪತ್ತೆಯಾಗಿದೆ. ಸೂಕ್ಷ್ಮ ಪ್ರಭೇದಗಳಿಗೆ ತಕ್ಷಣದ ಶಿಲೀಂಧ್ರನಾಶಕ ಸಲಹೆ.',
+        'news2-title': '🍅 ಲೇಟ್ ಬ್ಲೈಟ್ (ಫೈಟೋಫ್ಥೋರಾ ಇನ್ಫೆಸ್ಟಾನ್ಸ್) - ಟೊಮೆಟೊ ಬೆಳೆಗಾರರ ಸಲಹೆ',
+        'news2-source': 'ಕ್ರಾಪ್ ಪ್ರೊಟೆಕ್ಷನ್ ನೆಟ್ವರ್ಕ್ · 5 ಗಂಟೆಗಳ ಹಿಂದೆ',
+        'news2-desc': 'ತಂಪಾದ, ತೇವಾಂಶವುಳ್ಳ ಪರಿಸ್ಥಿತಿಗಳು ವೇಗವಾಗಿ ಹರಡಲು ಅನುಕೂಲಕರವಾಗಿವೆ. ಹೊಲಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ರಕ್ಷಣಾತ್ಮಕ ಕ್ರಮಗಳನ್ನು ಅನ್ವಯಿಸಿ.',
+        'news3-title': '🌽 ಮಿಡ್ವೆಸ್ಟ್ ನಲ್ಲಿ ಕಾರ್ನ್ ಲೀಫ್ ಬ್ಲೈಟ್ ವರದಿ',
+        'news3-source': 'USDA ಪೆಸ್ಟ್ ಅಲರ್ಟ್ · 1 ದಿನ ಹಿಂದೆ',
+        'news3-desc': '3 ಹೊಸ ಕೌಂಟಿಗಳಲ್ಲಿ ಉತ್ತರ ಕಾರ್ನ್ ಲೀಫ್ ಬ್ಲೈಟ್ ದೃಢಪಟ್ಟಿದೆ. ನಿರೋಧಕ ಮಿಶ್ರತಳಿಗಳನ್ನು ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ.',
+        'news4-title': '🍇 ನಾಪಾ ವ್ಯಾಲಿಯ ದ್ರಾಕ್ಷಿತೋಟಗಳಲ್ಲಿ ಸೂಕ್ಷ್ಮ ಶಿಲೀಂಧ್ರ ಏಕಾಏಕಿ',
+        'news4-source': 'ವಿಟಿಕಲ್ಚರ್ ನ್ಯೂಸ್ · 1 ದಿನ ಹಿಂದೆ',
+        'news4-desc': 'ಆರಂಭಿಕ ಋತುವಿನ ಒತ್ತಡ ಹೆಚ್ಚಾಗಿದೆ. ಗಂಧಕದ ಅನ್ವಯಗಳು ನಿಗದಿಯಾಗಿವೆ.',
+        'refresh-note': 'ಈ ಬುಲೆಟಿನ್ ಸಸ್ಯ ರೋಗಶಾಸ್ತ್ರ ಸೇವೆಗಳಿಂದ RSS ಫೀಡ್ ಮೂಲಕ ದೈನಂದಿನ ನವೀಕರಣಗೊಳ್ಳುತ್ತದೆ. ಉತ್ಪಾದನೆಯಲ್ಲಿ, SmartFarm API ಅಥವಾ CGIAR ಮೀಡಿಯಾ ಮಾನಿಟರ್ ನಿಂದ ಪಡೆಯಲಾಗುತ್ತದೆ.',
+        'refresh-links': 'ನೈಜ ಡೇಟಾ ಮೂಲಗಳು:',
+        'code-summary': '👁️ ಮೂಲ ಕೋಡ್ ಪೂರ್ವವೀಕ್ಷಣೆ (HTML/CSS) – ವಿಸ್ತರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ',
+        'floating-note': 'ಪೂರ್ವವೀಕ್ಷಣೆ + ಮೂಲ — ಸಂಪೂರ್ಣ ಪ್ರತಿಕ್ರಿಯಾಶೀಲ + ಅನಿಮೇಷನ್ಗಳು'
+      }
+    };
+
+    // Function to set language
+    function setLanguage(lang) {
+      // Update active button
+      document.getElementById('lang-en').classList.remove('active');
+      document.getElementById('lang-kn').classList.remove('active');
+      document.getElementById(`lang-${lang}`).classList.add('active');
+
+      // Update all elements with data-i18n attribute
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          // Special case for footer attribution which contains HTML
+          if (key === 'footer-attribution' || key === 'refresh-links') {
+            el.innerHTML = translations[lang][key];
+          } else {
+            el.textContent = translations[lang][key];
+          }
+        }
+      });
+
+      // Update modal date dynamic part? We keep the static translation; the date itself is static text.
+    }
+
+    // Set default language (English) on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      setLanguage('en');
+    });
+  </script>
+</body>
+</html>
